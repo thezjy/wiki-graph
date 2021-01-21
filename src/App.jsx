@@ -4,17 +4,10 @@ import React, {
   unstable_useTransition as useTransition,
 } from 'react'
 import { searchWikipedia } from './apis'
+import NetworkGraph from './NetworkGraph'
 
 const initialQuery = 'React'
 const initialResource = searchWikipedia(initialQuery)
-
-function List({ resource }) {
-  return (
-    <div className="whitespace-pre-wrap">
-      {JSON.stringify(resource.read(), null, 2)}
-    </div>
-  )
-}
 
 function App() {
   const [query, setQuery] = useState(initialQuery)
@@ -34,12 +27,12 @@ function App() {
   }
 
   return (
-    <div>
-      <input value={query} onChange={handleChange} placeholder="search" />
+    <div className="h-screen flex flex-col">
+      <div>
+        <input value={query} onChange={handleChange} placeholder="search" />
+      </div>
       <Suspense fallback={<p>Loading...</p>}>
-        <div className={`text-${isPending ? 'gray' : 'green'}-500`}>
-          <List resource={resource} />
-        </div>
+        <NetworkGraph resource={resource} />
       </Suspense>
     </div>
   )
