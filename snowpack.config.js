@@ -8,6 +8,7 @@ module.exports = {
     '@snowpack/plugin-postcss',
     '@snowpack/plugin-react-refresh',
     '@snowpack/plugin-dotenv',
+    ['@snowpack/plugin-webpack', { sourceMap: true }],
   ],
   routes: [
     /* Enable an SPA Fallback in development: */
