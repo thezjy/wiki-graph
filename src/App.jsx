@@ -1,39 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {
+  Suspense,
+  useState,
+  unstable_useTransition as useTransition,
+} from 'react'
+import { searchWikipedia } from './apis'
 
-function App() {
-  // Create the count state.
-  const [count, setCount] = useState(0);
-  // Create the counter (+1 every second).
-  useEffect(() => {
-    const timer = setTimeout(() => setCount(count + 1), 1000);
-    return () => clearTimeout(timer);
-  }, [count, setCount]);
-  // Return the App component.
+const initialQuery = 'React'
+const initialResource = searchWikipedia(initialQuery)
+
+function List({ resource }) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <p>
-          Page has been open for <code>{count}</code> seconds.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+    <div className="whitespace-pre-wrap">
+      {JSON.stringify(resource.read(), null, 2)}
     </div>
-  );
+  )
 }
 
-export default App;
+function App() {
+  const [query, setQuery] = useState(initialQuery)
+  const [resource, setResource] = useState(initialResource)
+
+  const [startTransition, isPending] = useTransition({ timeoutMs: 5000 })
+
+  function handleChange(e) {
+    const value = e.target.value
+
+    setQuery(value)
+    if (value.length > 0) {
+      startTransition(() => {
+        setResource(searchWikipedia(value))
+      })
+    }
+  }
+
+  return (
+    <div>
+      <input value={query} onChange={handleChange} placeholder="search" />
+      <Suspense fallback={<p>Loading...</p>}>
+        <div className={`text-${isPending ? 'gray' : 'green'}-500`}>
+          <List resource={resource} />
+        </div>
+      </Suspense>
+    </div>
+  )
+}
+
+export default App
