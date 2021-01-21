@@ -39,11 +39,11 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex">
+    <div className="h-screen flex flex-col md:flex-row">
       <div className="w-62 border p-4 flex flex-col justify-between">
         <div>
           <input
-            className="border bg-white appearance-none block w-full rounded-md py-3 px-4 focus:outline-none"
+            className="border bg-white appearance-none block w-full rounded-md py-1 px-2 focus:outline-none"
             value={query}
             onChange={handleChangeQuery}
             placeholder="search"
@@ -65,7 +65,7 @@ function App() {
           <div>(please be kind to the wikipedia server :))</div>
         </div>
 
-        <div>
+        <div className="hidden md:block">
           <h2 className="text-lg font-bold">Notice: </h2>
           <ul className="list-disc list-inside">
             <li>English only</li>
