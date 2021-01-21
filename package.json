@@ -7,6 +7,7 @@
     "lint": "prettier --check \"src/**/*.{js,jsx}\""
   },
   "dependencies": {
+    "lodash-es": "^4.17.20",
     "react": "^0.0.0-experimental-27659559e",
     "react-dom": "^0.0.0-experimental-27659559e",
     "vis-network": "^9.0.0",

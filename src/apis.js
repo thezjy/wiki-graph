@@ -1,5 +1,17 @@
 const BASE_URL =
   'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*'
+
+const ROOT_NODE_OPTION = {
+  color: {
+    background: 'orange',
+    size: 40,
+  },
+}
+
+/**
+ * react concurrent mode stuff
+ * https://reactjs.org/docs/concurrent-mode-patterns.html
+ */
 function wrapPromise(promise) {
   let status = 'pending'
   let result
@@ -26,31 +38,30 @@ function wrapPromise(promise) {
   }
 }
 
-async function doSearchWikipedia(query, count = 10) {
-  const response1 = await fetch(
+async function doSearchWikipedia(query, count) {
+  const response = await fetch(
     `${BASE_URL}&srlimit=${count}&list=search&srsearch=${query}`,
   )
 
-  const json1 = await response1.json()
-  const terms = json1.query.search.filter(
-    (item) => !item.snippet.includes(' may refer to: '),
+  const json = await response.json()
+
+  const results = json.query.search.filter(
+    (result) => !result.snippet.includes(' may refer to: '), // naive way to filter out disambiguation page
   )
 
-  const promises = terms.map(async (item) => {
+  const promises = results.map(async (result) => {
     const response = await fetch(
-      `${BASE_URL}&prop=links&pllimit=10&titles=${item.title}`,
+      `${BASE_URL}&prop=links&pllimit=20&titles=${result.title}`,
     )
     const json = await response.json()
     return {
-      root: item.title,
-      links: json.query.pages[item.pageid].links,
+      root: result.title,
+      links: json.query.pages[result.pageid]?.links ?? [],
     }
   })
 
   const raw = await Promise.all(promises)
   const graph = createGraphData(raw)
-
-  console.info('graph', graph)
 
   return graph
 }
@@ -61,22 +72,27 @@ function createGraphData(raw) {
     edges: [],
   }
 
+  // cache for quick existence check
   let ids = {}
 
-  function pushNode(id, extra) {
+  // we use wikipedia title as id because it's kind of unique
+  function pushNode(id, isRoot = false) {
     if (ids[id] == null) {
-      graph.nodes.push({ id, label: id, ...extra })
+      let node = { id, label: id }
+      if (isRoot) {
+        node = {
+          ...node,
+          ...ROOT_NODE_OPTION,
+        }
+      }
+      graph.nodes.push(node)
 
       ids[id] = id
     }
   }
 
   raw.forEach((item) => {
-    pushNode(item.root, {
-      color: {
-        background: 'orange',
-      },
-    })
+    pushNode(item.root, true)
     item.links.forEach((link) => {
       pushNode(link.title)
       graph.edges.push({ from: item.root, to: link.title })
@@ -86,7 +102,7 @@ function createGraphData(raw) {
   return graph
 }
 
-export function searchWikipedia(query) {
-  const promise = doSearchWikipedia(query)
+export function searchWikipedia(query, count) {
+  const promise = doSearchWikipedia(query, count)
   return wrapPromise(promise)
 }
