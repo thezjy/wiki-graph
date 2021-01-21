@@ -49,6 +49,7 @@ async function doSearchWikipedia(query, count) {
     (result) => !result.snippet.includes(' may refer to: '), // naive way to filter out disambiguation page
   )
 
+  // after some googling I just can't find a way to fetch all search results with page links in a single request.
   const promises = results.map(async (result) => {
     const response = await fetch(
       `${BASE_URL}&prop=links&pllimit=20&titles=${result.title}`,
